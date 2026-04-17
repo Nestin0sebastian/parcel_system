@@ -20,11 +20,15 @@ class Tracking(models.Model):
         ('DELIVERED', 'Delivered'),
     )
 
-    parcel = models.ForeignKey('parcel.Parcel', on_delete=models.CASCADE, related_name='tracking_history')
+    parcel = models.ForeignKey(
+        'parcel.Parcel',
+        on_delete=models.CASCADE,
+        related_name='tracking_history'
+    )
+
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES)
-
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
