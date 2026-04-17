@@ -1,29 +1,20 @@
 from rest_framework import serializers
-from .models import Application, Job
-from django.contrib.auth.models import User
-
-
-class ApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Application
-        fields = '__all__'
+from .models import User, Parcel, Tracking
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'password']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
-
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        return user
+        fields = '__all__'
 
 
-
-class JobSerializer(serializers.ModelSerializer):
+class ParcelSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Job
-        fields = '__all__'        
+        model = Parcel
+        fields = '__all__'
+
+
+class TrackingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tracking
+        fields = '__all__'
