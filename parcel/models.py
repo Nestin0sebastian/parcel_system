@@ -3,6 +3,13 @@ import uuid
 
 
 class Parcel(models.Model):
+    STATUS_CHOICES = [
+        ("CREATED", "Created"),
+        ("CONFIRMED", "Confirmed"),
+        ("IN_TRANSIT", "In Transit"),
+        ("DELIVERED", "Delivered"),
+    ]
+
     tracking_id = models.CharField(max_length=100, unique=True, editable=False)
 
     sender_name = models.CharField(max_length=100)
@@ -15,7 +22,15 @@ class Parcel(models.Model):
     dimensions = models.CharField(max_length=100, blank=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
-    status = models.CharField(max_length=50, default="CREATED")
+
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default="CREATED"
+    )
+
+    
+    is_confirmed = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

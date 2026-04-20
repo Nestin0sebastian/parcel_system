@@ -12,35 +12,8 @@ class CreateParcelView(APIView):
         serializer = ParcelSerializer(data=request.data)
 
         if serializer.is_valid():
-            data = serializer.validated_data
+            parcel = serializer.save()
 
-            weight = float(data.get("weight"))
-            source = data.get("source_pincode")
-            dest = data.get("destination_pincode")
-            dimensions = data.get("dimensions", "")
-
-            base_price = 50
-            per_kg = 20
-            distance_factor = 1.5 if source != dest else 1
-
-            volumetric_weight = 0
-            if dimensions:
-                try:
-                    l, w, h = map(float, dimensions.split("x"))
-                    volumetric_weight = (l * w * h) / 5000
-                except:
-                    volumetric_weight = 0
-
-            chargeable_weight = max(weight, volumetric_weight)
-            calculated_price = base_price + (chargeable_weight * per_kg * distance_factor)
-
-           
-            parcel = serializer.save(
-                price=round(calculated_price, 2),
-                status="CREATED"
-            )
-
-            
             location_obj, _ = Location.objects.get_or_create(name="Origin")
 
             Tracking.objects.create(
@@ -51,46 +24,90 @@ class CreateParcelView(APIView):
 
             return Response({
                 "message": "Parcel created successfully",
+                "parcel_id": parcel.id,
                 "tracking_id": parcel.tracking_id,
                 "price": parcel.price
-            }, status=status.HTTP_201_CREATED)      
+            }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-
-
-class CalculatePriceView(APIView):
-    def post(self, request):
+class CheckoutView(APIView):
+    def get(self, request, tracking_id):
         try:
-            source_pincode = request.data.get("source_pincode")
-            destination_pincode = request.data.get("destination_pincode")
-            weight = float(request.data.get("weight", 0))
-            dimensions = request.data.get("dimensions", "")
+            parcel = Parcel.objects.get(tracking_id=tracking_id)
+        except Parcel.DoesNotExist:
+            return Response({"error": "Parcel not found"}, status=404)
 
-            base_price = 50
-            per_kg = 20
-            distance_factor = 1.5 if source_pincode != destination_pincode else 1
+        return Response({
+            "parcel_id": parcel.id,
+            "tracking_id": parcel.tracking_id,
+            "sender": parcel.sender_name,
+            "receiver": parcel.receiver_name,
+            "source": parcel.source_pincode,
+            "destination": parcel.destination_pincode,
+            "weight": parcel.weight,
+            "dimensions": parcel.dimensions,
+            "price": parcel.price,
+            "status": parcel.status,
+            "is_confirmed": parcel.is_confirmed
+        })
 
-            volumetric_weight = 0
-            if dimensions:
-                try:
-                    l, w, h = map(float, dimensions.split("x"))
-                    volumetric_weight = (l * w * h) / 5000
-                except:
-                    volumetric_weight = 0
 
-            chargeable_weight = max(weight, volumetric_weight)
-            price = base_price + (chargeable_weight * per_kg * distance_factor)
+class ConfirmParcelView(APIView):
+    def post(self, request, tracking_id):
+        try:
+            parcel = Parcel.objects.get(tracking_id=tracking_id)
+        except Parcel.DoesNotExist:
+            return Response({"error": "Parcel not found"}, status=404)
 
+        if parcel.is_confirmed:
             return Response({
-                "price": round(price, 2),
-                "chargeable_weight": round(chargeable_weight, 2)
-            }, status=status.HTTP_200_OK)
+                "message": "Already confirmed",
+                "parcel_id": parcel.id,
+                "tracking_id": parcel.tracking_id
+            }, status=400)
 
-        except Exception as e:
-            return Response({
-                "error": str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
+        parcel.is_confirmed = True
+        parcel.status = "CONFIRMED"
+        parcel.save()
+
+        location_obj, _ = Location.objects.get_or_create(name="Confirmed")
+
+        Tracking.objects.create(
+            parcel=parcel,
+            location=location_obj,
+            status="PICKED"
+        )
+
+        return Response({
+            "message": "Parcel confirmed successfully",
+            "parcel_id": parcel.id,
+            "tracking_id": parcel.tracking_id
+        }, status=status.HTTP_200_OK)
+
+
+class InvoiceView(APIView):
+    def get(self, request, tracking_id):
+        try:
+            parcel = Parcel.objects.get(tracking_id=tracking_id)
+        except Parcel.DoesNotExist:
+            return Response({"error": "Parcel not found"}, status=404)
+
+        if not parcel.is_confirmed:
+            return Response({"error": "Parcel not confirmed yet"}, status=400)
+
+        return Response({
+            "invoice_id": f"INV-{parcel.id}",
+            "parcel_id": parcel.id,
+            "tracking_id": parcel.tracking_id,
+            "sender": parcel.sender_name,
+            "receiver": parcel.receiver_name,
+            "source": parcel.source_pincode,
+            "destination": parcel.destination_pincode,
+            "weight": parcel.weight,
+            "dimensions": parcel.dimensions,
+            "price": parcel.price,
+            "status": parcel.status,
+            "created_at": parcel.created_at
+        })
