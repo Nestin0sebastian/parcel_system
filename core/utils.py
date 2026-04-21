@@ -10,7 +10,7 @@ def get_location_from_pincode(pincode):
 
         response = requests.get(url, headers=headers, timeout=5)
 
-        data = response.json()
+        data = response.json()      
 
         if not isinstance(data, list) or len(data) == 0:
             return None

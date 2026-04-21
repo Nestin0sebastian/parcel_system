@@ -5,11 +5,11 @@ class Location(models.Model):
     name = models.CharField(max_length=100)
     pincode = models.CharField(max_length=10)
     city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100, blank=True, null=True)  # ✅ ADD THIS
 
     def __str__(self):
         return f"{self.name} ({self.pincode})"
-
-
+        
 class Tracking(models.Model):
     STATUS_CHOICES = (
         ('CREATED', 'Created'),
@@ -29,6 +29,7 @@ class Tracking(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES)
+    note = models.CharField(max_length=255, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
