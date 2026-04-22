@@ -6,7 +6,7 @@ urlpatterns = [
 
     # 🔐 AUTH
     path('auth/signup/', SignupView.as_view()),
-    path('auth/login/', TokenObtainPairView.as_view()),  # JWT login
+    path('auth/login/', TokenObtainPairView.as_view()),
     path('auth/refresh/', TokenRefreshView.as_view()),
     path('auth/logout/', LogoutView.as_view()),
 
@@ -18,4 +18,7 @@ urlpatterns = [
     path('admin/user/<int:user_id>/', UserDetailView.as_view()),
     path('admin/parcels/', ParcelListView.as_view()),
     path('admin/dashboard/', AdminDashboardView.as_view()),
+
+    # 📦 PARCEL DETAIL (ADD THIS)
+    path('parcel/<int:parcel_id>/', ParcelDetailView.as_view()),
 ]
