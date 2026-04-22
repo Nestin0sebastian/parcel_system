@@ -6,6 +6,7 @@ from parcel.models import Parcel
 from .models import Tracking, Location
 from .serializers import TrackingSerializer
 from core.utils import get_location_from_pincode
+from core.utils import estimate_eta
 
 ALLOWED_TRANSITIONS = {
     "CREATED": ["PICKED_UP"],
@@ -49,7 +50,7 @@ class UpdateTrackingView(APIView):
         tracking_id = request.data.get('tracking_id')
         new_status = request.data.get('status')
 
-        # ✅ Validate input (pincode REMOVED)
+        # ✅ Validate input
         if not tracking_id or not new_status:
             return Response({
                 "error": "tracking_id and status required"
@@ -82,12 +83,12 @@ class UpdateTrackingView(APIView):
             pincode = parcel.destination_pincode
 
         elif new_status == "IN_TRANSIT":
-            pincode = parcel.destination_pincode  # for location display
+            pincode = parcel.destination_pincode
 
         else:
             pincode = parcel.source_pincode
 
-        # 🔥 CREATE LOCATION + GET CITY
+        # 🔥 CREATE LOCATION
         location_data = get_location_from_pincode(pincode)
 
         if location_data:
@@ -136,18 +137,34 @@ class UpdateTrackingView(APIView):
         elif new_status == "DELIVERED":
             note = "Delivered successfully"
 
+        # 🔥 GET CITIES (FOR ETA)
+        sender_loc = get_location_from_pincode(parcel.source_pincode)
+        receiver_loc = get_location_from_pincode(parcel.destination_pincode)
+
+        sender_city = sender_loc.get("city") if sender_loc else "Unknown"
+        receiver_city = receiver_loc.get("city") if receiver_loc else "Unknown"
+
+        # 🔥 ETA CALCULATION
+        eta_days = None
+        if new_status in ["PICKED_UP", "IN_TRANSIT"]:
+            eta_days = estimate_eta(sender_city, receiver_city)
+
         # ✅ CREATE TRACKING
         Tracking.objects.create(
             parcel=parcel,
             location=location_obj,
             status=new_status,
-            note=note   
+            note=note,
+            eta_days=eta_days
         )
+
+        # 🔥 SYNC PARCEL STATUS
         parcel.status = new_status
         parcel.save()
 
         return Response({
             "message": "Tracking updated successfully",
             "new_status": new_status,
-            "note": note
+            "note": note,
+            "eta_days": eta_days
         }, status=status.HTTP_200_OK)

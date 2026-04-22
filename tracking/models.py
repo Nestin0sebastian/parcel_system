@@ -27,7 +27,7 @@ class Tracking(models.Model):
     )
 
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
-
+    eta_days = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES)
     note = models.CharField(max_length=255, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)

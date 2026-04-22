@@ -11,6 +11,10 @@ class TrackingSerializer(serializers.ModelSerializer):
 
     time = serializers.DateTimeField(source='timestamp', format="%Y-%m-%d %H:%M", read_only=True)
 
+    # 🔥 NEW FIELDS
+    note = serializers.CharField(read_only=True)
+    eta = serializers.SerializerMethodField()
+
     class Meta:
         model = Tracking
         fields = [
@@ -20,5 +24,13 @@ class TrackingSerializer(serializers.ModelSerializer):
             "pincode",
             "city",
             "state",
-            "time"
+            "time",
+            "note",   # 🔥 added
+            "eta"     # 🔥 added
         ]
+
+    # 🔥 ETA DISPLAY LOGIC
+    def get_eta(self, obj):
+        if obj.eta_days:
+            return f"{obj.eta_days} day(s) remaining"
+        return None

@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import Parcel
-from core.utils import get_location_from_pincode
+from core.utils import (
+    get_location_from_pincode,
+    get_distance_between_cities
+)
 
 
 class ParcelSerializer(serializers.ModelSerializer):
@@ -35,7 +38,7 @@ class ParcelSerializer(serializers.ModelSerializer):
 
         return data
 
-    # 🔥 PRICE CALCULATION
+    # 🔥 PRICE CALCULATION WITH DISTANCE
     def create(self, validated_data):
         weight = float(validated_data.get("weight"))
         source = validated_data.get("source_pincode")
@@ -44,8 +47,19 @@ class ParcelSerializer(serializers.ModelSerializer):
 
         base_price = 50
         per_kg = 20
-        distance_factor = 1.5 if source != dest else 1
+        cost_per_km = 0.2   
 
+        # 🔥 GET CITY DATA
+        source_data = get_location_from_pincode(source)
+        dest_data = get_location_from_pincode(dest)
+
+        source_city = source_data.get("city") if source_data else "Unknown"
+        dest_city = dest_data.get("city") if dest_data else "Unknown"
+
+        # 🔥 GET DISTANCE
+        distance = get_distance_between_cities(source_city, dest_city)
+
+        # 🔥 VOLUMETRIC WEIGHT
         volumetric_weight = 0
         if dimensions:
             try:
@@ -57,7 +71,13 @@ class ParcelSerializer(serializers.ModelSerializer):
                 )
 
         chargeable_weight = max(weight, volumetric_weight)
-        calculated_price = base_price + (chargeable_weight * per_kg * distance_factor)
+
+        # 🔥 FINAL PRICE
+        calculated_price = (
+            base_price +
+            (chargeable_weight * per_kg) +
+            (distance * cost_per_km)
+        )
 
         validated_data['price'] = round(calculated_price, 2)
         validated_data['status'] = "PENDING"
