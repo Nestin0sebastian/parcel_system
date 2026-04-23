@@ -15,17 +15,24 @@ STATUS_CHOICES = [
 
 class Parcel(models.Model):
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    # 👤 USER
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
     parcel_id = models.CharField(max_length=20, unique=True, editable=False, null=True, blank=True)
     tracking_id = models.CharField(max_length=100, unique=True, editable=False, null=True, blank=True)
 
+    # 👥 SENDER & RECEIVER
     sender_name = models.CharField(max_length=100)
-    receiver_name = models.CharField(max_length=100)
+    sender_phone = models.CharField(max_length=15)
 
+    receiver_name = models.CharField(max_length=100)
+    receiver_phone = models.CharField(max_length=15)
+    receiver_email = models.EmailField(max_length=255, null=True, blank=True)
+    # 📍 LOCATION
     source_pincode = models.CharField(max_length=10)
     destination_pincode = models.CharField(max_length=10)
 
+    # 📦 DETAILS
     weight = models.DecimalField(max_digits=5, decimal_places=2)
     dimensions = models.CharField(max_length=100, blank=True)
 
@@ -34,6 +41,21 @@ class Parcel(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="CREATED")
     is_confirmed = models.BooleanField(default=False)
 
+    # 🚚 DELIVERY SYSTEM
+    assigned_delivery_staff = models.ForeignKey(
+        'accounts.Staff',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='deliveries'
+    )
+
+    # 🔐 OTP SYSTEM
+    otp = models.CharField(max_length=6, null=True, blank=True)
+    otp_verified = models.BooleanField(default=False)
+    otp_created_at = models.DateTimeField(null=True, blank=True)  # 🔥 for expiry
+
+    # ⏱️ TIME
     created_at = models.DateTimeField(auto_now_add=True)
 
     assigned_staff = models.ForeignKey(
