@@ -63,6 +63,60 @@ class UpdateTrackingView(APIView):
                 "error": "Parcel not found"
             }, status=status.HTTP_404_NOT_FOUND)
 
+        # ❌ BLOCK IF CANCELLED
+        if parcel.status == "CANCELLED":
+            return Response({
+                "error": "Parcel is cancelled"
+            }, status=400)
+
+        # 🔒 GET STAFF
+        staff = getattr(request.user, "staff", None)
+
+        # 🔥 LOCATION DATA
+        staff_loc = get_location_from_pincode(staff.pincode) if staff else None
+        staff_city = staff_loc.get("city") if staff_loc else None
+
+        source_loc = get_location_from_pincode(parcel.source_pincode)
+        dest_loc = get_location_from_pincode(parcel.destination_pincode)
+
+        source_city = source_loc.get("city") if source_loc else None
+        dest_city = dest_loc.get("city") if dest_loc else None
+
+        # 🔥 PICKUP CONTROL
+        if new_status == "PICKED_UP":
+            if not staff or staff.role != "PICKUP":
+                return Response({"error": "Only pickup staff allowed"}, status=403)
+
+            if parcel.assigned_staff != staff:
+                return Response({"error": "Not assigned to this parcel"}, status=403)
+
+            if staff_city != source_city:
+                return Response({"error": "Wrong pickup district"}, status=403)
+
+        # 🔥 HUB CONTROL (SENDER HUB)
+        if new_status in ["ARRIVED_AT_SENDER_HUB", "IN_TRANSIT"]:
+            if not staff or staff.role != "HUB":
+                return Response({"error": "Only hub staff allowed"}, status=403)
+
+            if staff_city != source_city:
+                return Response({"error": "Wrong sender hub"}, status=403)
+
+        # 🔥 HUB CONTROL (TRANSIT + DEST HUB)
+        if new_status ==  "ARRIVED_AT_DESTINATION_HUB":
+            if not staff or staff.role != "HUB":
+                return Response({"error": "Only hub staff allowed"}, status=403)
+
+            if staff_city != dest_city:
+                return Response({"error": "Wrong destination hub"}, status=403)
+
+        # 🔥 DELIVERY CONTROL
+        if new_status in ["OUT_FOR_DELIVERY", "DELIVERED"]:
+            if not staff or staff.role != "DELIVERY":
+                return Response({"error": "Only delivery staff allowed"}, status=403)
+
+            if staff_city != dest_city:
+                return Response({"error": "Wrong delivery district"}, status=403)
+
         # 🔥 STATUS CONTROL
         last_tracking = parcel.tracking_history.last()
 
@@ -110,7 +164,7 @@ class UpdateTrackingView(APIView):
 
         print("LOCATION CREATED:", location_obj.id)
 
-        # 🔥 DYNAMIC NOTE LOGIC
+        # 🔥 NOTE LOGIC
         note = ""
 
         if new_status == "PICKED_UP":
@@ -120,13 +174,7 @@ class UpdateTrackingView(APIView):
             note = current_city
 
         elif new_status == "IN_TRANSIT":
-            sender_loc = get_location_from_pincode(parcel.source_pincode)
-            receiver_loc = get_location_from_pincode(parcel.destination_pincode)
-
-            sender_city = sender_loc.get("city") if sender_loc else "Unknown"
-            receiver_city = receiver_loc.get("city") if receiver_loc else "Unknown"
-
-            note = f"{sender_city} → {receiver_city}"
+            note = f"{source_city} → {dest_city}"
 
         elif new_status == "ARRIVED_AT_DESTINATION_HUB":
             note = current_city
@@ -137,17 +185,10 @@ class UpdateTrackingView(APIView):
         elif new_status == "DELIVERED":
             note = "Delivered successfully"
 
-        # 🔥 GET CITIES (FOR ETA)
-        sender_loc = get_location_from_pincode(parcel.source_pincode)
-        receiver_loc = get_location_from_pincode(parcel.destination_pincode)
-
-        sender_city = sender_loc.get("city") if sender_loc else "Unknown"
-        receiver_city = receiver_loc.get("city") if receiver_loc else "Unknown"
-
-        # 🔥 ETA CALCULATION
+        # 🔥 ETA
         eta_days = None
         if new_status in ["PICKED_UP", "IN_TRANSIT"]:
-            eta_days = estimate_eta(sender_city, receiver_city)
+            eta_days = estimate_eta(source_city, dest_city)
 
         # ✅ CREATE TRACKING
         Tracking.objects.create(
