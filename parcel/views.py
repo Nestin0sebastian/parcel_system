@@ -4,11 +4,19 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth import authenticate, login, logout
+from django.utils.timezone import now
+from datetime import timedelta
+
+from core.utils import (
+    get_location_from_pincode,
+    estimate_eta,
+    calculate_price_details
+)
 
 from .models import Parcel
 from .serializers import ParcelSerializer
 from tracking.models import Tracking, Location
-from core.utils import get_location_from_pincode
+
 
 
 
@@ -58,18 +66,61 @@ class CheckoutView(APIView):
         except Parcel.DoesNotExist:
             return Response({"error": "Parcel not found"}, status=404)
 
+        # ============================================
+        # 🌍 LOCATION (SINGLE FETCH - NO DUPLICATE CALLS)
+        # ============================================
+        source_loc = get_location_from_pincode(parcel.source_pincode) or {}
+        dest_loc = get_location_from_pincode(parcel.destination_pincode) or {}
+
+        source_city = source_loc.get("city", "Unknown")
+        destination_city = dest_loc.get("city", "Unknown")
+
+        # ============================================
+        # 📅 ETA (USES SAME CITIES - NO EXTRA API CALL)
+        # ============================================
+        try:
+            eta_days = estimate_eta(source_city, destination_city)
+        except Exception:
+            eta_days = 2
+
+        estimated_delivery = (now() + timedelta(days=eta_days)).date()
+
+        # ============================================
+        # 💰 PRICING (SAME LOGIC AS SERIALIZER)
+        # ============================================
+        pricing = calculate_price_details(parcel)
+
+        # ============================================
+        # 📦 RESPONSE
+        # ============================================
         return Response({
             "parcel_id": parcel.id,
             "tracking_id": parcel.tracking_id,
+
+            # 👤 INFO
             "sender": parcel.sender_name,
             "receiver": parcel.receiver_name,
-            "source": parcel.source_pincode,
-            "destination": parcel.destination_pincode,
+
+            # 🌍 LOCATION
+            "source_pincode": parcel.source_pincode,
+            "source_city": source_city,
+
+            "destination_pincode": parcel.destination_pincode,
+            "destination_city": destination_city,
+
+            # 📦 DETAILS
             "weight": parcel.weight,
             "dimensions": parcel.dimensions,
-            "price": parcel.price,
+
+            # 💰 PRICING (DISTANCE BASED)
+            "pricing": pricing,
+
+            # 📊 STATUS
             "status": parcel.status,
-            "is_confirmed": parcel.is_confirmed
+            "is_confirmed": parcel.is_confirmed,
+
+            # 📅 DELIVERY
+            "estimated_delivery": estimated_delivery
         })
 
 
@@ -148,11 +199,21 @@ class InvoiceView(APIView):
             "created_at": parcel.created_at
         })
      
+from core.utils import get_location_from_pincode
+
 class UserParcelListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         parcels = Parcel.objects.filter(user=request.user).order_by('-created_at')
+
+        location_cache = {}
+
+        def get_city(pincode):
+            if pincode not in location_cache:
+                loc = get_location_from_pincode(pincode) or {}
+                location_cache[pincode] = loc.get("city", pincode)
+            return location_cache[pincode]
 
         data = []
 
@@ -162,8 +223,12 @@ class UserParcelListView(APIView):
                 "tracking_id": p.tracking_id,
                 "sender": p.sender_name,
                 "receiver": p.receiver_name,
-                "source": p.source_pincode,
-                "destination": p.destination_pincode,
+
+                # ✅ city instead of pincode
+                "source": get_city(p.source_pincode),
+                "destination": get_city(p.destination_pincode),
+
+                "weight": p.weight,
                 "status": p.status,
                 "created_at": p.created_at
             })
@@ -180,28 +245,51 @@ class UserParcelDetailView(APIView):
         except Parcel.DoesNotExist:
             return Response({"error": "Parcel not found"}, status=404)
 
-        # Parcel info
+        # 🌍 LOCATION
+        source_loc = get_location_from_pincode(parcel.source_pincode) or {}
+        dest_loc = get_location_from_pincode(parcel.destination_pincode) or {}
+
+        source_city = source_loc.get("city") or "Unknown"
+        dest_city = dest_loc.get("city") or "Unknown"
+
+        # 📅 ETA
+        try:
+            eta_days = estimate_eta(source_city, dest_city)
+        except:
+            eta_days = 2
+
+        estimated_delivery = (now() + timedelta(days=eta_days)).date()
+
+        # 📦 PARCEL DATA
         parcel_data = {
             "parcel_id": parcel.id,
             "tracking_id": parcel.tracking_id,
+
             "sender": parcel.sender_name,
+            "sender_phone": parcel.sender_phone,
             "receiver": parcel.receiver_name,
-            "source": parcel.source_pincode,
-            "destination": parcel.destination_pincode,
+            "receiver_phone": parcel.receiver_phone,
+
+            "source_pincode": parcel.source_pincode,
+            "source_city": source_city,
+            "destination_pincode": parcel.destination_pincode,
+            "destination_city": dest_city,
+
             "weight": parcel.weight,
             "price": parcel.price,
             "status": parcel.status,
-            "created_at": parcel.created_at
+            "created_at": parcel.created_at,
+            "estimated_delivery": estimated_delivery
         }
 
-        # Tracking history
-        history = parcel.tracking_history.all()
+        # 🚚 TRACKING HISTORY (ORDER FIXED)
+        history = parcel.tracking_history.all().order_by("timestamp")
 
         tracking_data = [
             {
                 "status": t.status,
-                "location": t.location.city,
-                "note": t.note,
+                "location": getattr(t.location, "city", "Unknown"),
+                "note": t.note or "",
                 "time": t.timestamp
             }
             for t in history
@@ -282,26 +370,33 @@ class HubParcelListView(APIView):
         if not staff or staff.role != "HUB":
             return Response({"error": "Not hub staff"}, status=403)
 
-        # 🔥 STAFF DISTRICT
-        staff_loc = get_location_from_pincode(staff.pincode)
-        staff_city = staff_loc.get("city") if staff_loc else None
+        # 🔥 STAFF CITY (ONLY ONCE)
+        staff_loc = get_location_from_pincode(staff.pincode) or {}
+        staff_city = staff_loc.get("city")
 
         parcels = Parcel.objects.all()
+
+        # 🔥 CACHE FOR THIS REQUEST
+        location_cache = {}
+
+        def get_city(pincode):
+            if pincode not in location_cache:
+                loc = get_location_from_pincode(pincode) or {}
+                location_cache[pincode] = loc.get("city")
+            return location_cache[pincode]
 
         filtered = []
 
         for p in parcels:
-            source_city = get_location_from_pincode(p.source_pincode).get("city")
-            dest_city = get_location_from_pincode(p.destination_pincode).get("city")
+            source_city = get_city(p.source_pincode)
+            dest_city = get_city(p.destination_pincode)
 
-            # 🔵 SOURCE HUB LOGIC
             if staff_city == source_city:
-                if p.status in ["PICKED_UP", "ARRIVED_AT_SENDER_HUB"]:
+                if p.status in ["PICKED_UP", "ARRIVED_AT_SENDER_HUB", "IN_TRANSIT"]:
                     filtered.append(p)
 
-            # 🟢 DEST HUB LOGIC
             elif staff_city == dest_city:
-                if p.status in ["IN_TRANSIT", "ARRIVED_AT_DESTINATION_HUB"]:
+                if p.status in ["IN_TRANSIT", "ARRIVED_AT_DESTINATION_HUB", "OUT_FOR_DELIVERY", "DELIVERED"]:
                     filtered.append(p)
 
         data = [
@@ -316,6 +411,7 @@ class HubParcelListView(APIView):
         ]
 
         return Response(data)
+
 
 class CancelParcelView(APIView):
     permission_classes = [IsAuthenticated]
@@ -381,22 +477,29 @@ class PickupRequestListView(APIView):
         if not staff or staff.role != "PICKUP":
             return Response({"error": "Not pickup staff"}, status=403)
 
-        # 🔥 GET STAFF DISTRICT
-        staff_loc = get_location_from_pincode(staff.pincode)
-        staff_city = staff_loc.get("city") if staff_loc else None
+        # 🔥 STAFF CITY (only once)
+        staff_loc = get_location_from_pincode(staff.pincode) or {}
+        staff_city = staff_loc.get("city")
 
         parcels = Parcel.objects.filter(
             status="CONFIRMED",
             assigned_staff__isnull=True
         )
 
+        # 🔥 CACHE (per request)
+        location_cache = {}
+
+        def get_city(pincode):
+            if pincode not in location_cache:
+                loc = get_location_from_pincode(pincode) or {}
+                location_cache[pincode] = loc.get("city")
+            return location_cache[pincode]
+
         filtered = []
 
         for p in parcels:
-            parcel_loc = get_location_from_pincode(p.source_pincode)
-            parcel_city = parcel_loc.get("city") if parcel_loc else None
+            parcel_city = get_city(p.source_pincode)
 
-            # 🔥 MATCH DISTRICT (CITY)
             if parcel_city == staff_city:
                 filtered.append({
                     "parcel_id": p.id,
@@ -406,6 +509,7 @@ class PickupRequestListView(APIView):
                 })
 
         return Response(filtered)
+
 
 # 🔥 ACCEPT PICKUP
 class AcceptPickupView(APIView):
@@ -473,20 +577,28 @@ class DeliveryRequestListView(APIView):
         if not staff or staff.role != "DELIVERY":
             return Response({"error": "Not delivery staff"}, status=403)
 
-        # 🔥 STAFF DISTRICT
-        staff_loc = get_location_from_pincode(staff.pincode)
-        staff_city = staff_loc.get("city") if staff_loc else None
+        # 🔥 STAFF CITY (only once)
+        staff_loc = get_location_from_pincode(staff.pincode) or {}
+        staff_city = staff_loc.get("city")
 
         parcels = Parcel.objects.filter(
             status="ARRIVED_AT_DESTINATION_HUB",
             assigned_delivery_staff__isnull=True
         )
 
+        # 🔥 CACHE (per request)
+        location_cache = {}
+
+        def get_city(pincode):
+            if pincode not in location_cache:
+                loc = get_location_from_pincode(pincode) or {}
+                location_cache[pincode] = loc.get("city")
+            return location_cache[pincode]
+
         filtered = []
 
         for p in parcels:
-            dest_loc = get_location_from_pincode(p.destination_pincode)
-            dest_city = dest_loc.get("city") if dest_loc else None
+            dest_city = get_city(p.destination_pincode)
 
             if dest_city == staff_city:
                 filtered.append({
@@ -516,11 +628,43 @@ class AcceptDeliveryView(APIView):
         if parcel.status != "ARRIVED_AT_DESTINATION_HUB" or parcel.assigned_delivery_staff:
             return Response({"error": "Already taken"}, status=400)
 
+        # ✅ Assign delivery staff
         parcel.assigned_delivery_staff = staff
         parcel.status = "OUT_FOR_DELIVERY"
         parcel.save()
 
-        return Response({"message": "Delivery accepted"})
+        # 🔥 CREATE TRACKING ENTRY
+        location_data = get_location_from_pincode(parcel.destination_pincode)
+
+        if location_data:
+            location_obj = Location.objects.create(
+                name=location_data.get("name", "Unknown"),
+                pincode=parcel.destination_pincode,
+                city=location_data.get("city", "Unknown"),
+                state=location_data.get("state", "Unknown")
+            )
+            current_city = location_data.get("city", "Unknown")
+        else:
+            location_obj = Location.objects.create(
+                name="Unknown",
+                pincode=parcel.destination_pincode,
+                city="Unknown",
+                state="Unknown"
+            )
+            current_city = "Unknown"
+
+        Tracking.objects.create(
+            parcel=parcel,
+            location=location_obj,
+            status="OUT_FOR_DELIVERY",
+            note="Out for delivery"
+        )
+
+        return Response({
+            "message": "Delivery accepted",
+            "status": "OUT_FOR_DELIVERY",
+            "location": current_city
+        })
 
 class MyDeliveryParcelsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -547,3 +691,6 @@ class MyDeliveryParcelsView(APIView):
             })
 
         return Response(data)
+
+
+        

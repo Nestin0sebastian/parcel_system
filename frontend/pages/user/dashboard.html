@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Shipments — SwiftShip</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<!-- <link rel="stylesheet" href="../../assets/css/style2.css">    -->
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'">Swift<span>Ship</span></div>
+  <div class="nav-links">
+    <button class="nav-link" onclick="window.location.href='index.html'">Home</button>
+    <button class="nav-link" id="nav-dashboard" onclick="window.location.href='dashboard.html'" style="display:none">My Parcels</button>
+    <button class="nav-btn nav-btn-outline" id="nav-login" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-btn nav-btn-filled" id="nav-signup" onclick="window.location.href='signup.html'">Sign Up</button>
+    <div class="user-avatar" id="nav-avatar" style="display:none" onclick="logout()">JS</div>
+  </div>
+</nav>
+
+<div class="section">
+  <div class="container">
+    <div class="flex justify-between items-center mb-3">
+      <div>
+        <h2 style="font-family:var(--font-head);font-size:1.75rem;font-weight:800;color:var(--g-dark)">My Shipments</h2>
+        <p class="text-muted text-sm">Track and manage all your parcels</p>
+      </div>
+      <button class="btn btn-primary" onclick="window.location.href='create.html'">+ New Shipment</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-num">5</div><div class="stat-label">Total Parcels</div></div>
+      <div class="stat-card"><div class="stat-icon">🚛</div><div class="stat-num">2</div><div class="stat-label">In Transit</div></div>
+      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num">2</div><div class="stat-label">Delivered</div></div>
+      <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-num">1</div><div class="stat-label">Pending</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+       <input id="search-input" type="text" class="form-input"
+placeholder="Search tracking ID or city..." style="padding-left:36px">
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="filter-tab active" data-filter="all">All</button>
+<button class="filter-tab" data-filter="pending">Pending</button>
+<button class="filter-tab" data-filter="confirmed">Confirmed</button>
+<button class="filter-tab" data-filter="transit">In Transit</button>
+<button class="filter-tab" data-filter="delivered">Delivered</button>
+<button class="filter-tab" data-filter="cancelled">Cancelled</button>
+      </div>
+    </div>
+
+    <!-- Parcel Cards -->
+    <div class="parcel-cards-grid" id="parcel-grid"></div>
+  </div>
+</div>
+
+<button class="fab" onclick="window.location.href='create.html'" title="New Shipment">+</button>
+
+<!-- Cancel Modal -->
+<div class="modal-overlay" id="cancel-modal" style="display:none" onclick="if(event.target===this)closeCancelModal()">
+  <div class="modal" id="cancel-modal-content"></div>
+</div>
+
+<script type="module" src="../../assets/js/main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — SwiftShip</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+
+<body>
+
+<div id="toast-container"></div>
+
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'">Swift<span>Ship</span></div>
+  <div class="nav-links">
+    <button class="nav-link" onclick="window.location.href='index.html'">Home</button>
+    <button class="nav-link" id="nav-dashboard" onclick="window.location.href='dashboard.html'" style="display:none">My Parcels</button>
+    <button class="nav-btn nav-btn-outline" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-btn nav-btn-filled" onclick="window.location.href='signup.html'">Sign Up</button>
+  </div>
+</nav>
+
+<div class="auth-layout">
+  <div class="auth-panel">
+    <div class="auth-illustration">📦</div>
+    <h2>Join thousands of happy shippers</h2>
+    <p>Create an account and start shipping smarter with real-time tracking and guaranteed delivery.</p>
+  </div>
+
+  <div class="auth-form-side">
+    <div class="auth-form-card">
+      <h1>Create Account</h1>
+      <p class="subtitle">Start shipping in minutes</p>
+
+      <div class="form-group">
+        <label class="form-label">User Name</label>
+        <!-- ✅ FIXED ID -->
+        <input type="text" class="form-input" id="su-username" placeholder="John Smith">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-input" id="su-email" placeholder="john@example.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-group">
+          <input type="password" class="form-input" id="su-pass" placeholder="Min. 8 characters">
+          <span class="input-icon" onclick="togglePass('su-pass',this)">👁</span>
+        </div>
+      </div>
+
+      <div class="form-group" style="display:flex;align-items:flex-start;gap:10px">
+        <input type="checkbox" id="su-terms">
+        <label for="su-terms">I agree to Terms & Privacy</label>
+      </div>
+
+      <!-- ✅ CONNECTED BUTTON -->
+   <button id="signup-btn" class="btn btn-primary btn-full btn-lg">
+  Create Account
+</button>
+
+      <p style="margin-top:10px">
+        Already have an account?
+        <a href="login.html">Login →</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ ONLY THIS SCRIPT -->
+
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+ 
+
+  const signupBtn = document.getElementById("signup-btn");
+  if (signupBtn) {
+    signupBtn.addEventListener("click", window.doSignup);
+  }
+});
+</script>
+<script type="module" src="../../assets/js/main.js"></script>
+</body>
+</html> 

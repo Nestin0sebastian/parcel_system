@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Shipment — SwiftShip</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'">Swift<span>Ship</span></div>
+  <div class="nav-links">
+    <button class="nav-link" onclick="window.location.href='index.html'">Home</button>
+    <button class="nav-link" id="nav-dashboard" onclick="window.location.href='dashboard.html'" style="display:none">My Parcels</button>
+    <button class="nav-btn nav-btn-outline" id="nav-login" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-btn nav-btn-filled" id="nav-signup" onclick="window.location.href='signup.html'">Sign Up</button>
+    <div class="user-avatar" id="nav-avatar" style="display:none" onclick="logout()">JS</div>
+  </div>
+</nav>
+
+<div class="section">
+  <div class="container-sm">
+    <div class="breadcrumb mb-2">
+      <a href="index.html" style="color:var(--g-base);font-weight:500;text-decoration:none">Home</a>
+      <span>›</span>
+      <a href="dashboard.html" style="color:var(--g-base);font-weight:500;text-decoration:none">My Parcels</a>
+      <span>›</span>
+      <span style="color:var(--gray-500)">New Shipment</span>
+    </div>
+    <h2 style="font-family:var(--font-head);font-size:1.75rem;font-weight:800;color:var(--g-dark);margin-bottom:1.5rem">📦 New Shipment</h2>
+
+    <!-- Steps Bar -->
+    <div class="steps-bar">
+      <div class="step-item">
+        <div class="step-circle done" id="sc1">✓</div>
+        <span class="step-label done" id="sl1">Addresses</span>
+      </div>
+      <div class="step-connector done" id="scon1"></div>
+      <div class="step-item">
+        <div class="step-circle active" id="sc2">2</div>
+        <span class="step-label active" id="sl2">Parcel Info</span>
+      </div>
+      <div class="step-connector" id="scon2"></div>
+      <div class="step-item">
+        <div class="step-circle" id="sc3">3</div>
+        <span class="step-label" id="sl3">Review</span>
+      </div>
+    </div>
+
+   <!-- Step 1 -->
+<div id="create-step1">
+  <div class="grid-2">
+
+    <!-- 📤 SENDER -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h4 style="font-family:var(--font-head);color:var(--g-dark)">📤 Sender</h4>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="s1-sname" placeholder="Sender name">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input type="tel" class="form-input" id="s1-sphone" placeholder="+91 9876543210">
+      </div>
+
+      <!-- ✅ PINCODE INSTEAD OF CITY -->
+      <div class="form-group">
+        <label class="form-label">Source Pincode</label>
+        <input type="text" class="form-input" id="s1-source" placeholder="e.g. 673001">
+      </div>
+    </div>
+
+    <!-- 📥 RECEIVER -->
+    <div class="card">
+      <h4 style="font-family:var(--font-head);color:var(--g-dark);margin-bottom:1rem">📥 Receiver</h4>
+
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="s1-rname" placeholder="Receiver name">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input type="tel" class="form-input" id="s1-rphone" placeholder="+91 9876543210">
+      </div>
+
+      <!-- ✅ REQUIRED IN MODEL -->
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="s1-remail" placeholder="receiver@email.com">
+      </div>
+
+      <!-- ✅ PINCODE -->
+      <div class="form-group">
+        <label class="form-label">Destination Pincode</label>
+        <input type="text" class="form-input" id="s1-dest" placeholder="e.g. 560001">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="flex justify-between mt-3">
+    <button class="btn btn-outline" onclick="window.location.href='dashboard.html'">← Back</button>
+    <button type="button" class="btn btn-primary" onclick="goStep(2)">Next: Parcel Info →</button>
+  </div>
+</div>
+
+
+<!-- Step 2 -->
+<div id="create-step2" style="display:none">
+  <div class="card">
+
+    <h4 style="font-family:var(--font-head);color:var(--g-dark);margin-bottom:1rem">Parcel Info</h4>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Weight (kg)</label>
+        <input type="number" class="form-input" id="s2-weight" placeholder="1.0" min="0.1" step="0.1">
+      </div>
+    </div>
+
+    <!-- ✅ DIMENSIONS (IMPORTANT FOR BACKEND) -->
+    <div class="form-group mt-1">
+      <label class="form-label">Dimensions (cm) — L × W × H</label>
+      <div style="display:flex;gap:8px">
+        <input type="number" class="form-input" placeholder="L" id="s2-l">
+        <input type="number" class="form-input" placeholder="W" id="s2-w">
+        <input type="number" class="form-input" placeholder="H" id="s2-h">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="flex justify-between mt-3">
+    <button class="btn btn-outline" onclick="goStep(1)">← Back</button>
+    <button class="btn btn-primary" onclick="saveDraftAndReview()">
+  Review Order →
+</button>
+  </div>
+</div>
+
+
+<!-- Step 3 -->
+   <!-- Step 3 -->
+    <div id="create-step3" style="display:none">
+      <div class="review-section">
+        <div class="review-header"><h4>📤 Sender</h4><button class="btn btn-ghost btn-sm" style="color:var(--g-base);background:var(--g-mist);border:none;font-size:0.75rem" onclick="goStep(1)">Edit</button></div>
+        <div class="review-body">
+          <div class="review-row"><span class="key">Name</span><span class="val" id="rv-sname">—</span></div>
+          <div class="review-row"><span class="key">Phone</span><span class="val" id="rv-sphone">—</span></div>
+          <div class="review-row"><span class="key">City</span><span class="val" id="rv-scity">—</span></div>
+        </div>
+      </div>
+      <div class="review-section">
+        <div class="review-header"><h4>📥 Receiver</h4><button class="btn btn-ghost btn-sm" style="color:var(--g-base);background:var(--g-mist);border:none;font-size:0.75rem" onclick="goStep(1)">Edit</button></div>
+        <div class="review-body">
+          <div class="review-row"><span class="key">Name</span><span class="val" id="rv-rname">—</span></div>
+          <div class="review-row"><span class="key">Phone</span><span class="val" id="rv-rphone">—</span></div>
+          <div class="review-row"><span class="key">City</span><span class="val" id="rv-rcity">—</span></div>
+        </div>
+      </div>
+      <div class="review-section">
+        <div class="review-header"><h4>📦 Parcel</h4><button class="btn btn-ghost btn-sm" style="color:var(--g-base);background:var(--g-mist);border:none;font-size:0.75rem" onclick="goStep(2)">Edit</button></div>
+        <div class="review-body">
+          <div class="review-row"><span class="key">Type</span><span class="val" id="rv-type">Standard</span></div>
+          <div class="review-row"><span class="key">Weight</span><span class="val" id="rv-weight">—</span></div>
+          <div class="review-row"><span class="key">Estimated Cost</span><span class="val" id="rv-cost" style="color:var(--g-base);font-size:1.1rem">₹120</span></div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg mt-3" onclick="submitParcel()">
+  Create Parcel 📦
+</button>
+      <div class="flex justify-between mt-2">
+        <button class="btn btn-outline" onclick="goStep(2)">← Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="../../assets/js/main.js"></script>
+
+</body>
+</html>

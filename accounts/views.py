@@ -225,38 +225,6 @@ class ParcelDetailView(APIView):
             "history": history_data
         })
 
-class AcceptDeliveryView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, parcel_id):
-        user = request.user
-
-        if not hasattr(user, "staff") or user.staff.role != "DELIVERY":
-            return Response({"error": "Only delivery staff allowed"}, status=403)
-
-        try:
-            parcel = Parcel.objects.get(id=parcel_id)
-        except Parcel.DoesNotExist:
-            return Response({"error": "Parcel not found"}, status=404)
-
-        # 🔥 NEW FLOW
-        if parcel.status != "ARRIVED_AT_DESTINATION_HUB":
-            return Response({
-                "error": "Parcel not ready for delivery",
-                "current_status": parcel.status
-            }, status=400)
-
-        if parcel.assigned_delivery_staff:
-            return Response({"error": "Already assigned"}, status=400)
-
-        # ✅ Assign + move to delivery
-        parcel.assigned_delivery_staff = user.staff
-        parcel.status = "OUT_FOR_DELIVERY"
-        parcel.save()
-
-        return Response({
-            "message": "Delivery accepted successfully"
-        })
 
 
 class GenerateOTPView(APIView):
@@ -291,7 +259,11 @@ class GenerateOTPView(APIView):
         parcel.otp = otp
         parcel.otp_created_at = timezone.now()
         parcel.save()
+        
+         # 🔥 PRINT OTP IN CONSOLE
+        print(f"📦 OTP for parcel {parcel.tracking_id}: {otp}")
 
+        
         # 📧 Send Email
         send_mail(
             subject="Your Delivery OTP",
@@ -346,5 +318,33 @@ class DeliverParcelView(APIView):
         parcel.otp = None
         parcel.save()
 
-        return Response({"message": "Delivered successfully"})    
+        # 🔥 CREATE TRACKING ENTRY
+        location_data = get_location_from_pincode(parcel.destination_pincode)
+
+        if location_data:
+            location_obj = Location.objects.create(
+                name=location_data.get("name", "Unknown"),
+                pincode=parcel.destination_pincode,
+                city=location_data.get("city", "Unknown"),
+                state=location_data.get("state", "Unknown")
+            )
+        else:
+            location_obj = Location.objects.create(
+                name="Unknown",
+                pincode=parcel.destination_pincode,
+                city="Unknown",
+                state="Unknown"
+            )
+
+        Tracking.objects.create(
+            parcel=parcel,
+            location=location_obj,
+            status="DELIVERED",
+            note="Delivered successfully"
+        )
+
+        return Response({
+            "message": "Delivered successfully",
+            "status": "DELIVERED"
+        })    
 

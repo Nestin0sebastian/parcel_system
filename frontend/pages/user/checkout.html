@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — SwiftShip</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+
+<body>
+
+<div id="toast-container"></div>
+
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'">
+    Swift<span>Ship</span>
+  </div>
+
+  <div class="nav-links">
+    <button class="nav-link" onclick="window.location.href='index.html'">Home</button>
+    <button class="nav-link" id="nav-dashboard" onclick="window.location.href='dashboard.html'" style="display:none">My Parcels</button>
+    <button class="nav-btn nav-btn-outline" id="nav-login" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-btn nav-btn-filled" id="nav-signup" onclick="window.location.href='signup.html'">Sign Up</button>
+    <div class="user-avatar" id="nav-avatar" style="display:none">JS</div>
+  </div>
+</nav>
+
+<div class="section">
+  <div class="container-sm">
+
+    <!-- HEADER -->
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="font-size:3rem;animation:float 3s ease-in-out infinite">✅</div>
+      <h2 style="font-family:var(--font-head);font-size:1.75rem;color:var(--g-dark)">
+        Confirm Your Shipment
+      </h2>
+      <p class="text-muted">Review the details below before confirming</p>
+    </div>
+
+    <div class="grid-2" style="align-items:start">
+
+      <!-- LEFT: ORDER SUMMARY -->
+      <div class="card">
+        <h4 style="font-family:var(--font-head);color:var(--g-dark);margin-bottom:1rem">
+          Order Summary
+        </h4>
+
+        <!-- TRACKING -->
+        <div class="tracking-id-box">
+          <div>
+            <span class="text-xs text-muted">TRACKING ID</span><br>
+            <span class="tracking-id-val" id="co-tracking">---</span>
+          </div>
+          <button class="copy-btn" id="copy-btn" title="Copy">📋</button>
+        </div>
+
+        <!-- ROUTE -->
+        <div class="route-visual">
+          <div class="route-pin">
+            <div class="route-pin-dot origin"></div>
+            <div class="text-xs text-muted" id="co-origin">---</div>
+          </div>
+          <div class="route-line"></div>
+          <div class="route-pin">
+            <div class="route-pin-dot dest"></div>
+            <div class="text-xs text-muted" id="co-dest">---</div>
+          </div>
+        </div>
+
+        <!-- BADGES -->
+        <div class="flex gap-1 flex-wrap mb-2">
+          <span class="badge badge-green" id="co-type">📦 Standard</span>
+          <span class="badge badge-gray" id="co-weight">---</span>
+          <span class="chip chip-pending" id="co-status-chip">Pending</span>
+        </div>
+
+        <!-- INFO -->
+        <div class="info-row">
+          <span class="info-key">Est. Delivery</span>
+          <span class="info-val" id="co-delivery">---</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-key">Status</span>
+          <span class="info-val" id="co-status">---</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-key">Receiver</span>
+          <span class="info-val" id="co-receiver">---</span>
+        </div>
+
+        <!-- SECURITY -->
+        <div class="security-badges">
+          <div class="sec-badge">🔒 Secure Payment</div>
+          <div class="sec-badge">📡 Real-Time Tracking</div>
+          <div class="sec-badge">🛡️ Insured</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: PAYMENT -->
+      <div class="card-glass" style="border:1px solid var(--g-pale);">
+
+        <h4 style="font-family:var(--font-head);color:var(--g-dark);margin-bottom:1rem">
+          Payment Summary
+        </h4>
+
+        <!-- PRICING -->
+        <div class="cost-line">
+          <span class="text-muted">Base rate</span>
+          <span id="co-base">₹0</span>
+        </div>
+
+        <div class="cost-line">
+          <span class="text-muted">Weight charge</span>
+          <span id="co-weight-charge">₹0</span>
+        </div>
+
+        <div class="cost-line">
+          <span class="text-muted">Distance charge</span>
+          <span id="co-distance">₹0</span>
+        </div>
+
+        <div class="cost-total">
+          <span>Total</span>
+          <span style="color:var(--g-base)" id="co-total">₹0</span>
+        </div>
+
+        <!-- PAYMENT OPTIONS -->
+        <div class="payment-method">
+          <div class="payment-option selected">
+            <input type="radio" name="payment" checked>
+            <span>💵 Cash on Pickup</span>
+          </div>
+          <div class="payment-option">
+            <input type="radio" name="payment">
+            <span>💳 Online Payment</span>
+          </div>
+        </div>
+
+        <!-- CONFIRM BUTTON -->
+        <button class="btn btn-primary btn-full btn-lg" id="co-btn">
+          Confirm & Pay ✓
+        </button>
+
+        <p class="text-center text-sm text-muted mt-2">
+          <a href="#" style="color:var(--gray-400)" id="cancel-link">
+            Cancel shipment
+          </a>
+        </p>
+
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:1rem;font-size:0.8rem;color:var(--gray-400)">
+          ⏱ Complete within <strong style="color:var(--g-base)" id="timer">15:00</strong>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CANCEL MODAL -->
+<div class="modal-overlay" id="cancel-modal" style="display:none">
+  <div class="modal" id="cancel-modal-content"></div>
+</div>
+
+<script type="module" src="../../assets/js/main.js"></script>
+
+</body>
+</html>

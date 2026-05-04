@@ -42,14 +42,7 @@ class Parcel(models.Model):
     is_confirmed = models.BooleanField(default=False)
 
     # 🚚 DELIVERY SYSTEM
-    assigned_delivery_staff = models.ForeignKey(
-        'accounts.Staff',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='deliveries'
-    )
-
+  
     # 🔐 OTP SYSTEM
     otp = models.CharField(max_length=6, null=True, blank=True)
     otp_verified = models.BooleanField(default=False)
@@ -83,3 +76,4 @@ class Parcel(models.Model):
 
     def __str__(self):
         return f"{self.parcel_id} ({self.tracking_id})"
+

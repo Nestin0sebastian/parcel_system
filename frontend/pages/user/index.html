@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwiftShip — Logistics Platform</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'">Swift<span>Ship</span></div>
+  <div class="nav-links" id="nav-links">
+    <button class="nav-link" onclick="window.location.href='index.html'">Home</button>
+    <button class="nav-link" id="nav-dashboard" onclick="window.location.href='dashboard.html'" style="display:none">My Parcels</button>
+    <button class="nav-btn nav-btn-outline" id="nav-login" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-btn nav-btn-filled" id="nav-signup" onclick="window.location.href='signup.html'">Sign Up</button>
+    <div class="user-avatar" id="nav-avatar" style="display:none" onclick="logout()">JS</div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-bg">
+    <div class="hero-orb" style="width:400px;height:400px;background:var(--g-light);top:-100px;right:-100px;"></div>
+    <div class="hero-orb" style="width:300px;height:300px;background:var(--g-pale);bottom:-50px;left:10%;"></div>
+  </div>
+  <div class="hero-content">
+    <h1>Ship Smarter.<br><span>Track Easier.</span></h1>
+    <p>India's fastest growing logistics platform. Real-time tracking, instant pickups, guaranteed delivery.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary btn-lg" onclick="gotoCreate()">📦 Send a Parcel</button>
+      <button class="btn btn-ghost btn-lg" onclick="scrollToTrack()">🔍 Track Shipment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div style="background:var(--white);border-bottom:1px solid var(--gray-100);padding:1.5rem 2rem;">
+  <div class="container">
+    <div class="grid-4" style="text-align:center;">
+      <div><div class="section-title" style="font-size:1.8rem;" id="stat1">0</div><div class="text-muted text-sm">Parcels Delivered</div></div>
+      <div><div class="section-title" style="font-size:1.8rem;" id="stat2">0</div><div class="text-muted text-sm">Cities Covered</div></div>
+      <div><div class="section-title" style="font-size:1.8rem;" id="stat3">0%</div><div class="text-muted text-sm">On-Time Delivery</div></div>
+      <div><div class="section-title" style="font-size:1.8rem;" id="stat4">0★</div><div class="text-muted text-sm">Customer Rating</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<div class="section" style="background:var(--off-white)">
+  <div class="container">
+    <div class="text-center mb-3">
+      <h2 class="section-title">Why Choose SwiftShip?</h2>
+      <p class="section-sub">Built for speed, transparency, and reliability</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon">🛰️</div><h3 style="font-family:var(--font-head);margin-bottom:0.5rem;color:var(--g-dark)">Real-Time Tracking</h3><p class="text-muted text-sm">Live updates at every stage of your shipment's journey.</p></div>
+      <div class="feature-card"><div class="feature-icon">🔒</div><h3 style="font-family:var(--font-head);margin-bottom:0.5rem;color:var(--g-dark)">Insured Delivery</h3><p class="text-muted text-sm">Every parcel is insured up to its declared value.</p></div>
+      <div class="feature-card"><div class="feature-icon">⚡</div><h3 style="font-family:var(--font-head);margin-bottom:0.5rem;color:var(--g-dark)">Express Pickup</h3><p class="text-muted text-sm">Schedule same-day pickup from your doorstep.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- Cost Estimator -->
+<div class="section">
+  <div class="container">
+    <div class="text-center mb-3">
+      <h2 class="section-title">Estimate Shipping Cost</h2>
+      <p class="section-sub">No account needed — get an instant quote</p>
+    </div>
+    <div class="grid-2" style="align-items:start">
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Origin City</label>
+          <select class="form-input" id="est-origin"><option value="">Select city</option><option>Mumbai</option><option>Delhi</option><option>Bangalore</option><option>Chennai</option><option>Hyderabad</option><option>Kolkata</option><option>Pune</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Destination City</label>
+          <select class="form-input" id="est-dest"><option value="">Select city</option><option>Mumbai</option><option>Delhi</option><option>Bangalore</option><option>Chennai</option><option>Hyderabad</option><option>Kolkata</option><option>Pune</option></select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">Weight (kg)</label><input type="number" class="form-input" id="est-weight" placeholder="1.5" min="0.1" step="0.1"></div>
+          <div class="form-group"><label class="form-label">Type</label>
+            <select class="form-input" id="est-type"><option value="standard">Standard</option><option value="express">Express</option><option value="fragile">Fragile</option></select>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="calcEstimate()">Calculate Cost</button>
+      </div>
+      <div id="est-result" style="display:none">
+        <div class="estimator-result">
+          <p class="text-xs text-muted mb-1">ESTIMATED COST</p>
+          <div class="cost-big" id="est-cost">₹0</div>
+          <p class="text-sm text-muted mt-1" id="est-time">Delivery in 3-5 business days</p>
+          <hr style="border:none;border-top:1px solid var(--g-pale);margin:1rem 0">
+          <div class="cost-line"><span class="text-muted">Base rate</span><span id="est-base">₹0</span></div>
+          <div class="cost-line"><span class="text-muted">Weight charge</span><span id="est-wc">₹0</span></div>
+          <div class="cost-line"><span class="text-muted">Service fee</span><span id="est-sf">₹0</span></div>
+          <button class="btn btn-primary btn-full mt-2" onclick="gotoCreate()">Book This Shipment →</button>
+        </div>
+      </div>
+      <div id="est-placeholder" class="card" style="border:2px dashed var(--gray-200);display:flex;align-items:center;justify-content:center;min-height:200px;">
+        <div class="text-center text-muted"><div style="font-size:3rem;margin-bottom:0.5rem">💰</div><p>Fill the form to see your estimate</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Track Band -->
+<div class="track-band" id="track-section">
+  <div class="container" style="text-align:center">
+    <h2 class="section-title" style="color:var(--white);margin-bottom:0.5rem">Track Your Parcel</h2>
+    <p style="color:rgba(255,255,255,0.6);margin-bottom:1.5rem">Enter your tracking ID for live status</p>
+    <div class="track-input-row">
+      <input type="text" class="form-input" id="track-input" placeholder="e.g. SS2024001234" style="font-family:monospace">
+      <button class="btn btn-primary" onclick="doTrack()">Track →</button>
+    </div>
+    <div id="track-result" style="display:none">
+      <div class="mini-timeline mt-2">
+        <div id="mini-timeline-content"></div>
+      </div>
+      <button class="btn btn-ghost mt-2 btn-sm" onclick="window.location.href='parcel-detail.html'">View Full Details →</button>
+    </div>
+    <div id="track-error" style="display:none;color:#fca5a5;margin-top:0.75rem;font-size:0.9rem"></div>
+  </div>
+</div>
+
+<!-- How it works -->
+<div class="section" style="background:var(--white)">
+  <div class="container">
+    <div class="text-center mb-3">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-sub">Four simple steps to deliver anywhere</p>
+    </div>
+    <div class="grid-4">
+      <div class="how-step"><div class="how-step-num">1</div><h4 style="font-family:var(--font-head);margin-bottom:0.5rem">Create</h4><p class="text-sm text-muted">Enter sender & receiver details and parcel info</p></div>
+      <div class="how-step"><div class="how-step-num">2</div><h4 style="font-family:var(--font-head);margin-bottom:0.5rem">Confirm</h4><p class="text-sm text-muted">Review and pay for your shipment securely</p></div>
+      <div class="how-step"><div class="how-step-num">3</div><h4 style="font-family:var(--font-head);margin-bottom:0.5rem">Pickup</h4><p class="text-sm text-muted">Our agent collects from your doorstep</p></div>
+      <div class="how-step"><div class="how-step-num">4</div><h4 style="font-family:var(--font-head);margin-bottom:0.5rem">Delivered</h4><p class="text-sm text-muted">Receiver gets the parcel with OTP verification</p></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div><div style="font-family:var(--font-head);font-size:1.3rem;font-weight:800;color:var(--white);margin-bottom:0.5rem">SwiftShip</div><p style="font-size:0.8rem;max-width:200px">India's most reliable logistics platform.</p></div>
+    <div><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Blog</a></div>
+    <div><h4>Support</h4><a href="#">Help Center</a><a href="#">Contact</a><a href="#">Status</a></div>
+    <div><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a></div>
+  </div>
+  <div style="max-width:1100px;margin:2rem auto 0;border-top:1px solid rgba(255,255,255,0.1);padding-top:1.5rem;text-align:center;font-size:0.8rem">© 2025 SwiftShip. All rights reserved.</div>
+</footer>
+
+<script type="module" src="../../assets/js/main.js"></script>
+
+</body>
+</html>

@@ -10,30 +10,20 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
+from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 
-from pathlib import Path
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# SECURITY
 SECRET_KEY = 'django-insecure-30h-_(pl%p24)n689t1e5a*e-se=1_ro-b*dj%aut179x#z0m('
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
-
-# Application definition
-
+# APPLICATIONS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,14 +31,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # 🔥 THIRD PARTY
+    'corsheaders',
+    'rest_framework',
+
+    # 🔥 YOUR APPS
     'core',
     'accounts',
     'parcel',
     'tracking',
-    'rest_framework'
 ]
 
+# MIDDLEWARE (CORS MUST BE FIRST)
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',   # 🔥 VERY IMPORTANT
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,10 +74,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'parcel_system.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
+# DATABASE
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -92,53 +86,49 @@ DATABASES = {
     }
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
+# PASSWORD VALIDATION
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
+# INTERNATIONAL
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
+# EMAIL (OTP SYSTEM)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
 EMAIL_HOST_USER = 'webdesign4041@gmail.com'
 EMAIL_HOST_PASSWORD = 'jtwe lclr oyww kbyj'
 
-
+# 🔥 REST FRAMEWORK
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    )
 }
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
+# 🔥 JWT SETTINGS
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
 
+# 🔥 CORS (FRONTEND CONNECTION)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# STATIC FILES
 STATIC_URL = 'static/'
+
+# DEFAULT PRIMARY KEY
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

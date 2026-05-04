@@ -20,15 +20,15 @@ from .views import (
 
 urlpatterns = [
     # 🔹 USER FLOW
-    path("create/", CreateParcelView.as_view()),
-    path('checkout/<int:parcel_id>/', CheckoutView.as_view()),
-    path('confirm/<int:parcel_id>/', ConfirmParcelView.as_view()),
+    path("parcel/create/", CreateParcelView.as_view()),
+    path('parcel/checkout/<int:parcel_id>/', CheckoutView.as_view()),
+    path('parcel/confirm/<int:parcel_id>/', ConfirmParcelView.as_view()),
     path("invoice/<str:tracking_id>/", InvoiceView.as_view()),
     path('cancel/<int:parcel_id>/', CancelParcelView.as_view()),
 
     # 🔥 NEW USER DASHBOARD
-    path("my-parcels/", UserParcelListView.as_view()),                     # ✅ NEW
-    path("my-parcels/<int:parcel_id>/", UserParcelDetailView.as_view()),   # ✅ NEW
+    path("parcel/my-parcels/", UserParcelListView.as_view()),                     # ✅ NEW
+    path("parcel/my-parcels/<int:parcel_id>/", UserParcelDetailView.as_view()),   # ✅ NEW
 
     # 🔹 STAFF DASHBOARD
     path("staff/dashboard/", StaffDashboardView.as_view()),
@@ -42,4 +42,4 @@ urlpatterns = [
     path("delivery/requests/", DeliveryRequestListView.as_view()),
     path("delivery/accept/<int:parcel_id>/", AcceptDeliveryView.as_view()),
     path("delivery/my-parcels/", MyDeliveryParcelsView.as_view()),
-]
+]   

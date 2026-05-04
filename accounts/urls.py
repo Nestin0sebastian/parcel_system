@@ -21,7 +21,7 @@ urlpatterns = [
 
     # 📦 PARCEL DETAIL (ADD THIS)
     path('parcel/<int:parcel_id>/', ParcelDetailView.as_view()),
-    path('staff/accept-delivery/<int:parcel_id>/', AcceptDeliveryView.as_view()),
+   
     path('staff/deliver/<int:parcel_id>/', DeliverParcelView.as_view()),
     path('staff/generate-otp/<int:parcel_id>/', GenerateOTPView.as_view()),
 ]

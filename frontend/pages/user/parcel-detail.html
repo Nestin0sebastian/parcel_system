@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parcel Detail — SwiftShip</title>
+<  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <link rel="stylesheet" href="../../assets/css/parcel.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+</style>
+</head>
+<body onload="loadDetail()">
+
+<div id="cdot"></div>
+<div id="cring"></div>
+<div id="toast-container"></div>
+
+<!-- ── NAV ─────────────────────────────────── -->
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'">Swift<span>Ship</span></div>
+  <div class="nav-links">
+    <button class="nav-link" onclick="window.location.href='index.html'">Home</button>
+    <button class="nav-link" id="nav-dashboard" onclick="window.location.href='dashboard.html'" style="display:none">My Parcels</button>
+    <button class="nav-btn nav-btn-outline" id="nav-login" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-btn nav-btn-filled" id="nav-signup" onclick="window.location.href='signup.html'">Sign Up</button>
+    <div class="user-avatar" id="nav-avatar" style="display:none" onclick="logout()">JS</div>
+  </div>
+</nav>
+
+<!-- ── PAGE HERO ────────────────────────────── -->
+<div class="page-hero">
+  <canvas id="hero-particles"></canvas>
+  <div class="hero-inner">
+    <div class="hero-meta">
+      <div class="breadcrumb">
+        <a href="dashboard.html">My Parcels</a>
+        <span>›</span>
+        <span>SS2024001234</span>
+      </div>
+      <div class="hero-tracking-id">Tracking ID</div>
+      <div class="hero-title">SS2024001234</div>
+      <div class="hero-chips">
+        <span class="chip chip-transit">In Transit</span>
+        <span class="chip chip-live">📡 Live Tracking</span>
+        <span class="chip" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1)">📦 Standard</span>
+      </div>
+      <div class="hero-route">
+        <div>
+          <div class="route-city">Mumbai</div>
+          <div class="route-city-sub">Maharashtra</div>
+        </div>
+        <div class="route-mid">
+          <div class="route-line-anim"></div>
+          <div class="route-label">1,400 km · 3–5 days</div>
+        </div>
+        <div style="text-align:right">
+          <div class="route-city">Delhi</div>
+          <div class="route-city-sub">Delhi NCR</div>
+        </div>
+      </div>
+
+      <!-- Delivery progress bar -->
+      <div class="progress-section mt-2">
+        <div class="progress-label">
+          <span style="color:rgba(255,255,255,.45);font-size:.72rem;letter-spacing:.5px;text-transform:uppercase">Journey Progress</span>
+          <span style="color:var(--g-pale);font-weight:600">55%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="hero-progress" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D Globe -->
+    <div class="hero-globe">
+      <canvas id="globe-canvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAGE BODY ─────────────────────────────── -->
+<div class="page-body">
+  <div class="detail-grid">
+
+    <!-- LEFT COLUMN -->
+    <div>
+
+      <!-- Info Card -->
+      <div class="card scan-card mb-2 reveal">
+        <div class="flex justify-between items-center mb-2" style="padding-bottom:.75rem;border-bottom:1px solid var(--gray-50);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:40px;height:40px;border-radius:var(--r-sm);background:var(--g-mist);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📦</div>
+            <div>
+              <div class="text-xs text-muted" style="letter-spacing:.5px;text-transform:uppercase">Tracking ID</div>
+              <div style="font-family:monospace;font-size:1rem;font-weight:700;color:var(--g-dark);letter-spacing:1px;">SS2024001234
+                <button class="copy-btn" onclick="copyTracking()" title="Copy ID">📋</button>
+              </div>
+            </div>
+          </div>
+          <span class="chip chip-transit">In Transit</span>
+        </div>
+        <div class="info-row"><span class="info-key">Type</span><span class="info-val">📦 Standard</span></div>
+        <div class="info-row"><span class="info-key">Weight</span><span class="info-val">1.5 kg</span></div>
+        <div class="info-row"><span class="info-key">Dimensions</span><span class="info-val">30 × 20 × 15 cm</span></div>
+        <div class="info-row"><span class="info-key">Declared Value</span><span class="info-val">₹2,000</span></div>
+        <div class="info-row"><span class="info-key">Created</span><span class="info-val">Apr 22, 2025</span></div>
+        <div class="info-row"><span class="info-key">Confirmed</span><span class="info-val">Apr 22, 2025 · 3:00 PM</span></div>
+        <div class="info-row"><span class="info-key">Estimated Delivery</span><span class="info-val" style="color:var(--g-base);font-weight:700;">Apr 27, 2025</span></div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card mb-2 reveal d1">
+        <div class="flex justify-between items-center mb-3" style="padding-bottom:.85rem;border-bottom:1px solid var(--gray-50);">
+          <h4 style="font-family:var(--font-head);color:var(--g-dark);font-size:1.05rem;">🗺️ Shipment Journey</h4>
+          <span class="chip chip-transit" style="font-size:.7rem;">Stage 5 / 9</span>
+        </div>
+        <div class="timeline-wrap" id="main-timeline"></div>
+      </div>
+
+      <!-- Event Log -->
+      <div class="card reveal d2">
+        <div class="flex justify-between items-center mb-2">
+          <h4 style="font-family:var(--font-head);color:var(--g-dark);font-size:1.05rem;">📋 Event Log</h4>
+          <button class="btn btn-outline btn-sm" onclick="toggleLog(this)">Show All</button>
+        </div>
+        <div id="event-log">
+          <div class="event-log-row" style="animation-delay:.05s"><div class="flex gap-1 items-center mb-1"><span style="width:8px;height:8px;border-radius:50%;background:var(--g-light);display:inline-block;"></span><span class="text-xs text-muted">Apr 24, 2025 · 10:30 AM · Delhi Hub</span></div><span class="text-sm" style="color:var(--gray-600)">Parcel arrived at Delhi sorting hub</span></div>
+          <div class="event-log-row" style="animation-delay:.1s"><div class="flex gap-1 items-center mb-1"><span style="width:8px;height:8px;border-radius:50%;background:var(--g-accent);display:inline-block;"></span><span class="text-xs text-muted">Apr 23, 2025 · 8:00 PM · In Transit</span></div><span class="text-sm" style="color:var(--gray-600)">Parcel departed Mumbai, en route to Delhi</span></div>
+          <div class="event-log-row" style="animation-delay:.15s"><div class="flex gap-1 items-center mb-1"><span style="width:8px;height:8px;border-radius:50%;background:var(--g-base);display:inline-block;"></span><span class="text-xs text-muted">Apr 23, 2025 · 2:00 PM · Mumbai Hub</span></div><span class="text-sm" style="color:var(--gray-600)">Parcel received at Mumbai sorting hub</span></div>
+          <div class="event-log-row" style="animation-delay:.2s"><div class="flex gap-1 items-center mb-1"><span style="width:8px;height:8px;border-radius:50%;background:var(--gray-300);display:inline-block;"></span><span class="text-xs text-muted">Apr 23, 2025 · 11:00 AM · Mumbai</span></div><span class="text-sm" style="color:var(--gray-600)">Parcel picked up from sender</span></div>
+          <div class="event-log-row" style="animation-delay:.25s"><div class="flex gap-1 items-center mb-1"><span style="width:8px;height:8px;border-radius:50%;background:var(--gray-200);display:inline-block;"></span><span class="text-xs text-muted">Apr 22, 2025 · 3:15 PM · System</span></div><span class="text-sm" style="color:var(--gray-600)">Order confirmed, payment received</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div>
+
+      <!-- ETA Card -->
+      <div class="eta-card reveal-right mb-2">
+        <div style="position:relative;z-index:1">
+          <div class="eta-label">Estimated Delivery</div>
+          <div class="eta-date">Apr 27, 2025</div>
+          <div class="eta-sub">Sunday · 2 days remaining</div>
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.12);">
+            <div class="eta-label">Current Location</div>
+            <div style="color:var(--g-pale);font-weight:600;font-size:.9rem;">🏢 Delhi Sorting Hub</div>
+            <div class="eta-sub">Updated 2 hrs ago</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card mb-2 reveal-right d1">
+        <h4 style="font-family:var(--font-head);color:var(--g-dark);font-size:1.05rem;margin-bottom:1rem;">⚡ Actions</h4>
+        <div class="action-panel">
+          <button class="action-btn" onclick="showToast('Receipt downloaded!','success')"><span>📄 Download Receipt</span></button>
+          <button class="action-btn" onclick="copyTracking()"><span>🔗 Share Tracking Link</span></button>
+          <button class="action-btn" onclick="showToast('Refresh requested','success')"><span>🔄 Refresh Status</span></button>
+          <button class="action-btn action-btn-danger" onclick="showCancelModal()"><span>❌ Cancel Parcel</span></button>
+        </div>
+      </div>
+
+      <!-- People -->
+      <div class="card reveal-right d2">
+        <h4 style="font-family:var(--font-head);color:var(--g-dark);font-size:1.05rem;margin-bottom:.5rem;">👤 People</h4>
+        <div class="person-block">
+          <div class="flex gap-2 items-center mb-1">
+            <div class="person-avatar sender">JS</div>
+            <div>
+              <div class="text-xs text-muted" style="letter-spacing:.5px;text-transform:uppercase">Sender</div>
+              <div style="font-weight:600;font-size:.9rem;color:var(--gray-700)">John Smith</div>
+            </div>
+          </div>
+          <div class="text-xs text-muted" style="padding-left:48px;">+91 9876543210 · Mumbai, Maharashtra</div>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--gray-100);margin:.5rem 0">
+        <div class="person-block">
+          <div class="flex gap-2 items-center mb-1">
+            <div class="person-avatar receiver">JD</div>
+            <div>
+              <div class="text-xs text-muted" style="letter-spacing:.5px;text-transform:uppercase">Receiver</div>
+              <div style="font-weight:600;font-size:.9rem;color:var(--gray-700)">Jane Doe</div>
+            </div>
+          </div>
+          <div class="text-xs text-muted" style="padding-left:48px;">+91 9123456789 · Delhi, Delhi</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── CANCEL MODAL ──────────────────────────── -->
+<div class="modal-overlay" id="cancel-modal" style="display:none" onclick="if(event.target===this)closeCancelModal()">
+  <div class="modal" id="cancel-modal-content"></div>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="module" src="../../assets/js/main.js"></script>
+<script src="../../assets/parcelscript.js"></script>
+
+<script>
+
+</script>
+</body>
+</html>
